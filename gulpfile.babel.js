@@ -3,6 +3,13 @@ import path from 'path';
 
 import gulp from 'gulp';
 
+//import browserSync from 'browser-sync';
+//import serve from 'gulp-serve';
+
+import connect from 'gulp-connect';
+import sass from 'gulp-sass';
+import moduleImporter from 'sass-module-importer';
+
 // Load all gulp plugins automatically
 // and attach them to the `plugins` object
 import plugins from 'gulp-load-plugins';
@@ -18,6 +25,15 @@ import del from 'del';
 import pkg from './package.json';
 
 const dirs = pkg['h5bp-configs'].directories;
+
+const htmlSources =['src/*.html'];
+const cssSources = ['src/css/*.css'];
+const sassSources = ['src/style/*.scss'];
+const jsSources = ['src/js/*.js'];
+const jsonSources = ['src/js/*.json'];
+const allSources = htmlSources.concat(cssSources).concat(jsSources).concat(jsonSources).concat(sassSources);
+
+const mainSass = ['src/style/main.scss'];
 
 // ---------------------------------------------------------------------
 // | Helper tasks                                                      |
@@ -76,7 +92,7 @@ gulp.task('copy', [
     'copy:index.html',
     'copy:jquery',
     'copy:license',
-    'copy:main.css',
+    //'copy:main.css',
     'copy:misc',
     'copy:normalize'
 ]);
@@ -168,8 +184,47 @@ gulp.task('archive', (done) => {
 gulp.task('build', (done) => {
     runSequence(
         ['clean', 'lint:js'],
+        'sass',
+        //'babel',
         'copy',
     done)
 });
 
 gulp.task('default', ['build']);
+
+
+gulp.task('html', () => {
+    gulp.src('./src/*.html')
+        .pipe(connect.reload());
+});
+
+gulp.task('connectReload', () => {
+    connect.reload();
+});
+
+//livereload
+gulp.task('livereload', ['build'], () => {
+    gulp.src(allSources)
+        .pipe(connect.reload());
+});
+
+//watch the file changes to trigger livereload
+gulp.task('watch', () => {
+    gulp.watch(allSources, ['livereload']);
+});
+
+gulp.task('connect', () => {
+    connect.server({
+        root: 'dist',
+        livereload: true
+    });
+});
+
+gulp.task('sass', () => {
+    return gulp.src(mainSass)
+        .pipe(sass({ importer: moduleImporter() }).on('error', sass.logError))
+        .pipe(gulp.dest('./dist/css'));
+});
+
+
+gulp.task('serve', ['connect', 'livereload', 'watch']);
