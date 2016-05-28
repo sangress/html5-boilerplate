@@ -19,5 +19,10 @@ gulp serve
 ```
 
 
+TODO:
+* add Bootstrap4 options
+* variables.scss
+* tests
+
 
 to read more about html5boilerplate goto https://github.com/h5bp/html5-boilerplate
